@@ -18,13 +18,15 @@ if "dogrulandi" not in st.session_state:
 if not st.session_state.dogrulandi:
     st.title("🔐 Behlül AI Giriş")
     pin = st.text_input("PIN kodunu girin", type="password")
-    if st.button("Giriş Yap"):
-        if pin_dogrula(pin):
-            st.session_state.dogrulandi = True
-            st.success("Giriş başarılı ✅")
-            time.sleep(1)
-        else:
-            st.error("PIN hatalı ❌")
+    giris = st.button("Giriş Yap")
+
+    if giris and pin_dogrula(pin):
+        st.session_state.dogrulandi = True
+        st.success("Giriş başarılı ✅")
+        time.sleep(0.5)
+        st.experimental_rerun()  # Sayfayı yenile
+    elif giris:
+        st.error("PIN hatalı ❌")
     st.stop()
 
 # Mod seçimi
