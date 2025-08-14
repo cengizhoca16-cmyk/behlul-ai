@@ -23,8 +23,7 @@ if not st.session_state.dogrulandi:
     if giris and pin_dogrula(pin):
         st.session_state.dogrulandi = True
         st.success("Giriş başarılı ✅")
-        time.sleep(0.5)
-        st.experimental_rerun()  # Sayfayı yenile
+        time.sleep(1)
     elif giris:
         st.error("PIN hatalı ❌")
     st.stop()
