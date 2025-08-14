@@ -87,27 +87,30 @@ class Behlul:
     def test_ozeti(self):
         return json.dumps(self.gecmis_testler, indent=2)
 
+# 🔄 Basit mod için ek fonksiyonlar
+def modul_tetikle():
+    return "Modül tetiklendi."
+
+def laboratuvar_test():
+    return "Test tamamlandı."
+
 # 🚀 Mobil uyumlu kullanım
 if _name_ == "_main_":
     behlul = Behlul()
     behlul.modul_ekle("Basit_Strateji", basit_strateji)
     behlul.modul_ekle("Rastgele_Strateji", rastgele_strateji)
 
-    # Mobil PIN doğrulama
     if behlul.pin_dogrula("3947"):
         print("✅ PIN doğrulama başarılı")
 
-        # Mobil test verisi
         veri = 12
         veri_seti = [10, 15, 20]
 
-        # Laboratuvar testi
         test_sonuclari = behlul.laboratuvar_testi(veri, veri_seti)
         print("🧪 Test sonuçları:")
         for ad, detay in test_sonuclari.items():
             print(f" - {ad}: {detay}")
 
-        # Öneri motoru
         motor = OneriMotoru(behlul.moduller)
         print(motor.rastgele_oner())
 
@@ -116,7 +119,6 @@ if _name_ == "_main_":
         for ad, detay in analiz.items():
             print(f" - {ad}: {detay}")
 
-        # Geçmiş test özeti
         print("📁 Test geçmişi:")
         print(behlul.test_ozeti())
     else:
