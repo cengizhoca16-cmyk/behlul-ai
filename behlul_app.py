@@ -1,75 +1,87 @@
-def PNL_gorunalamaph():
-    import streamlit as st
-    import pandas as pd
-    import numpy as np
+import streamlit as st
+import requests
 
-    st.set_page_config(page_title="PNL Paneli", layout="wide")
+# Sayfa ayarları
+st.set_page_config(page_title="Şifre Değiştir", layout="centered")
 
-    st.title("📊 PNL Görselleştirme Paneli")
-    st.markdown("Bu modül, kar/zarar verilerini görselleştirmek ve test etmek için tasarlanmıştır.")
-    st.markdown("---")
+# Sabit PIN (geliştirme aşamasında)
+CORRECT_PIN = "1984"
 
-    tarih = pd.date_range(start="2023-01-01", periods=30, freq="D")
-    kar_zarar = np.random.randint(-1500, 1500, size=30)
-    df = pd.DataFrame({"Tarih": tarih, "Kar/Zarar": kar_zarar})
+# Oturum durumu
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "token" not in st.session_state:
+    st.session_state.token = None
 
-    st.subheader("📈 Günlük Kar/Zarar Grafiği")
-    st.line_chart(df.set_index("Tarih"))
+# PIN doğrulama
+def verify_pin(pin_input):
+    return pin_input == CORRECT_PIN
 
-    st.subheader("📋 Veri Tablosu")
-    st.dataframe(df)
+# Giriş fonksiyonu
+def login(username, password):
+    try:
+        response = requests.post(
+            'https://example.com/api/login',
+            json={'username': username, 'password': password}
+        )
+        response.raise_for_status()
+        return response.json().get('token')
+    except requests.RequestException as e:
+        st.error(f"Giriş başarısız: {e}")
+        return None
 
-    st.subheader("📊 İstatistiksel Özellikler")
-    st.write(df["Kar/Zarar"].describe())
+# Şifre değiştirme fonksiyonu
+def change_password(token, new_password):
+    try:
+        response = requests.post(
+            'https://example.com/api/change-password',
+            headers={'Authorization': f'Bearer {token}'},
+            json={'new_password': new_password}
+        )
+        response.raise_for_status()
+        return True
+    except requests.RequestException as e:
+        st.error(f"Şifre değiştirilemedi: {e}")
+        return False
 
-    st.subheader("🔍 Günlük Değişim Analizi")
-    df["Değişim"] = df["Kar/Zarar"].diff()
-    st.dataframe(df[["Tarih", "Değişim"]])
+# Arayüz
+st.title("🔐 Şifre Değiştirme Paneli")
 
-    st.subheader("🏆 En İyi ve En Kötü Günler")
-    max_row = df.loc[df["Kar/Zarar"].idxmax()]
-    min_row = df.loc[df["Kar/Zarar"].idxmin()]
-    st.markdown(f"*En İyi Gün:* {max_row['Tarih'].date()} → {max_row['Kar/Zarar']} ₺")
-    st.markdown(f"*En Kötü Gün:* {min_row['Tarih'].date()} → {min_row['Kar/Zarar']} ₺")
-
-    st.markdown("---")
-    st.subheader("🧪 Laboratuvar Test Alanı")
-    st.write("Bu alan, strateji üretimi ve veri analizi için test amaçlıdır.")
-
-    st.subheader("🔧 Tarih Aralığı Filtreleme")
-    baslangic = st.date_input("Başlangıç Tarihi", tarih.min())
-    bitis = st.date_input("Bitiş Tarihi", tarih.max())
-    if baslangic > bitis:
-        st.error("Başlangıç tarihi, bitiş tarihinden büyük olamaz.")
-    else:
-        filtreli_df = df[(df["Tarih"] >= pd.to_datetime(baslangic)) & (df["Tarih"] <= pd.to_datetime(bitis))]
-        st.dataframe(filtreli_df)
-
-    st.subheader("📌 Günlük Ortalama Hesabı")
-    ortalama = filtreli_df["Kar/Zarar"].mean()
-    st.markdown(f"*Seçilen Aralıkta Ortalama Kar/Zarar:* {ortalama:.2f} ₺")
-
-    st.subheader("📤 Veri İndirme Simülasyonu")
-    if st.button("Veriyi İndir (Simülasyon)"):
-        st.success("Veri indirildi (gerçek değil, simülasyon).")
-
-    st.subheader("📝 Kullanıcı Notları")
-    notlar = st.text_area("Bu modüle dair notlarınızı yazın:")
-    if notlar:
-        st.success("Not kaydedildi (simülasyon).")
-
-    st.subheader("📌 Günlük Kar/Zarar Histogramı")
-    st.bar_chart(df.set_index("Tarih")["Kar/Zarar"])
-
-    st.subheader("📈 Hareketli Ortalama")
-    df["MA5"] = df["Kar/Zarar"].rolling(window=5).mean()
-    st.line_chart(df.set_index("Tarih")[["Kar/Zarar", "MA5"]])
-
-    st.subheader("📊 Zaman Serisi Korelasyonu")
-    df["Kar/Zarar_Lag1"] = df["Kar/Zarar"].shift(1)
-    korelasyon = df[["Kar/Zarar", "Kar/Zarar_Lag1"]].corr().iloc[0, 1]
-    st.markdown(f"*Lag-1 Korelasyon:* {korelasyon:.2f}")
-
-    st.markdown("---")
-    st.markdown("✅ Modül başarıyla çalıştı ve test edildi.")
+# PIN doğrulama ekranı
+if not st.session_state.authenticated:
+    st.subheader("Private Erişim için PIN Girin")
+    pin_input = st.text_input("PIN", type="password")
+    if st.button("PIN Doğrula"):
+        if verify_pin(pin_input):
+            st.session_state.authenticated = True
+            st.success("PIN doğrulandı ✅")
+        else:
+            st.error("PIN hatalı ❌")
     st.stop()
+
+# Giriş ekranı
+st.subheader("Kullanıcı Girişi")
+username = st.text_input("Kullanıcı Adı")
+password = st.text_input("Mevcut Şifre", type="password")
+
+if st.button("Giriş Yap"):
+    token = login(username, password)
+    if token:
+        st.session_state.token = token
+        st.success("Giriş başarılı ✅")
+    else:
+        st.error("Giriş başarısız ❌")
+
+# Şifre değiştirme ekranı
+if st.session_state.token:
+    st.subheader("Yeni Şifre Belirle")
+    new_password = st.text_input("Yeni Şifre", type="password")
+    if st.button("Şifreyi Değiştir"):
+        if change_password(st.session_state.token, new_password):
+            st.success("Şifre başarıyla değiştirildi!")
+        else:
+            st.error("Şifre değiştirilemedi.")
+
+# Modül önerisi (örnek)
+st.markdown("---")
+st.caption("🧠 Sistem önerisi: Giriş sonrası kullanıcıya özel modül önerisi sunulabilir.")
