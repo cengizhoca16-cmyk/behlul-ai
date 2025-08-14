@@ -18,18 +18,14 @@ if "dogrulandi" not in st.session_state:
 if not st.session_state.dogrulandi:
     st.title("🔐 Behlül AI Giriş")
     pin = st.text_input("PIN kodunu girin", type="password")
-    giris = st.button("Giriş Yap")
-
-    if giris and pin_dogrula(pin):
-        st.session_state.dogrulandi = True
-        st.success("Giriş başarılı ✅")
-        time.sleep(1)
-    elif giris:
-        st.error("PIN hatalı ❌")
+    if st.button("Giriş Yap"):
+        if pin_dogrula(pin):
+            st.session_state.dogrulandi = True
+            st.success("Giriş başarılı ✅")
+            time.sleep(1)
+        else:
+            st.error("PIN hatalı ❌")
     st.stop()
-
-# Mod seçimi
-mod = st.radio("Mod Seçimi:", ["🔓 Basit Arayüz", "🔐 Gelişmiş Panel"])
 
 # Behlül çekirdeğini yükle
 try:
@@ -41,24 +37,29 @@ except Exception as e:
     st.error(f"Çekirdek modül yüklenemedi: {e}")
     st.stop()
 
+# Mod seçimi
+mod = st.radio("Mod Seçimi:", ["🔓 Basit Arayüz", "🔐 Gelişmiş Panel"])
+
 # 🔓 Basit Arayüz
 if mod == "🔓 Basit Arayüz":
     st.title("🤖 Behlül AI Asistanı")
     st.markdown("Modül tetikleme ve test için sade arayüz.")
 
-    if st.button("🔄 Modülü Tetikle"):
-        try:
-            sonuc = behlul_core.modul_tetikle()
-            st.success(f"Modül çalıştı: {sonuc}")
-        except Exception as e:
-            st.error(f"Hata oluştu: {e}")
-
-    if st.button("🧪 Laboratuvar Testi Başlat"):
-        try:
-            test_sonucu = behlul_core.laboratuvar_test()
-            st.info(f"Test sonucu: {test_sonucu}")
-        except Exception as e:
-            st.error(f"Test hatası: {e}")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔄 Modülü Tetikle"):
+            try:
+                sonuc = behlul_core.modul_tetikle()
+                st.success(f"Modül çalıştı: {sonuc}")
+            except Exception as e:
+                st.error(f"Hata oluştu: {e}")
+    with col2:
+        if st.button("🧪 Laboratuvar Testi Başlat"):
+            try:
+                test_sonucu = behlul_core.laboratuvar_test()
+                st.info(f"Test sonucu: {test_sonucu}")
+            except Exception as e:
+                st.error(f"Test hatası: {e}")
 
     with st.expander("⚙ Gelişmiş Ayarlar"):
         st.markdown("Buraya ilerde modül kombinasyonu, öneri motoru ve strateji ayarları eklenecek.")
@@ -70,19 +71,36 @@ else:
 
     veri = st.number_input("Veri girin", value=12)
     veri_seti = st.text_input("Veri seti (virgülle):", value="10,15,20")
-    veri_listesi = [int(x.strip()) for x in veri_seti.split(",") if x.strip().isdigit()]
+    try:
+        veri_listesi = [int(x.strip()) for x in veri_seti.split(",") if x.strip().isdigit()]
+    except:
+        st.error("Veri seti hatalı formatta.")
+        veri_listesi = []
 
-    if st.button("🧪 Laboratuvar Testi"):
-        sonuc = behlul.laboratuvar_testi(veri, veri_listesi)
-        st.write("Test Sonuçları:")
-        st.json(sonuc)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("🧪 Laboratuvar Testi"):
+            try:
+                sonuc = behlul.laboratuvar_testi(veri, veri_listesi)
+                st.write("Test Sonuçları:")
+                st.json(sonuc)
+            except Exception as e:
+                st.error(f"Test hatası: {e}")
 
-    if st.button("📊 Öneri Motoru"):
-        motor = behlul_core.OneriMotoru(behlul.moduller)
-        st.write(motor.rastgele_oner())
-        analiz = motor.analiz_et(veri, veri_listesi)
-        st.write("Analizler:")
-        st.json(analiz)
+    with col2:
+        if st.button("📊 Öneri Motoru"):
+            try:
+                motor = behlul_core.OneriMotoru(behlul.moduller)
+                st.write("📌 Öneri:", motor.rastgele_oner())
+                analiz = motor.analiz_et(veri, veri_listesi)
+                st.write("📈 Analizler:")
+                st.json(analiz)
+            except Exception as e:
+                st.error(f"Motor hatası: {e}")
 
-    if st.button("📁 Test Geçmişi"):
-        st.code(behlul.test_ozeti(), language="json")
+    with col3:
+        if st.button("📁 Test Geçmişi"):
+            try:
+                st.code(behlul.test_ozeti(), language="json")
+            except Exception as e:
+                st.error(f"Özet alınamadı: {e}")
