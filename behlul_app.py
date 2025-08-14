@@ -1,111 +1,75 @@
-import streamlit as st
-import importlib
-import time
+def PNL_gorunalamaph():
+    import streamlit as st
+    import pandas as pd
+    import numpy as np
 
-# Sayfa ayarları
-st.set_page_config(page_title="Behlül AI", layout="centered", page_icon="🤖", initial_sidebar_state="collapsed")
-st.markdown("<style>footer{visibility:hidden;}</style>", unsafe_allow_html=True)
+    st.set_page_config(page_title="PNL Paneli", layout="wide")
 
-# PIN doğrulama fonksiyonu
-def PIN_dogrulama(pin_input):
-    try:
-        return pin_input == "1995"
-    except:
-        return False
+    st.title("📊 PNL Görselleştirme Paneli")
+    st.markdown("Bu modül, kar/zarar verilerini görselleştirmek ve test etmek için tasarlanmıştır.")
+    st.markdown("---")
 
-# Oturum durumu
-if "dogrulandi" not in st.session_state:
-    st.session_state.dogrulandi = False
+    tarih = pd.date_range(start="2023-01-01", periods=30, freq="D")
+    kar_zarar = np.random.randint(-1500, 1500, size=30)
+    df = pd.DataFrame({"Tarih": tarih, "Kar/Zarar": kar_zarar})
 
-# Giriş ekranı
-if not st.session_state.dogrulandi:
-    st.title("🔐 Behlül AI Giriş")
-    pin_input = st.text_input("PIN kodunu girin", type="password", key="pin_input")
-    giris = st.button("Giriş Yap")
+    st.subheader("📈 Günlük Kar/Zarar Grafiği")
+    st.line_chart(df.set_index("Tarih"))
 
-    if giris:
-        if PIN_dogrulama(pin_input):
-            st.session_state.dogrulandi = True
-            st.success("Giriş başarılı ✅")
-            time.sleep(1)
-        else:
-            st.error("PIN hatalı ❌")
+    st.subheader("📋 Veri Tablosu")
+    st.dataframe(df)
+
+    st.subheader("📊 İstatistiksel Özellikler")
+    st.write(df["Kar/Zarar"].describe())
+
+    st.subheader("🔍 Günlük Değişim Analizi")
+    df["Değişim"] = df["Kar/Zarar"].diff()
+    st.dataframe(df[["Tarih", "Değişim"]])
+
+    st.subheader("🏆 En İyi ve En Kötü Günler")
+    max_row = df.loc[df["Kar/Zarar"].idxmax()]
+    min_row = df.loc[df["Kar/Zarar"].idxmin()]
+    st.markdown(f"*En İyi Gün:* {max_row['Tarih'].date()} → {max_row['Kar/Zarar']} ₺")
+    st.markdown(f"*En Kötü Gün:* {min_row['Tarih'].date()} → {min_row['Kar/Zarar']} ₺")
+
+    st.markdown("---")
+    st.subheader("🧪 Laboratuvar Test Alanı")
+    st.write("Bu alan, strateji üretimi ve veri analizi için test amaçlıdır.")
+
+    st.subheader("🔧 Tarih Aralığı Filtreleme")
+    baslangic = st.date_input("Başlangıç Tarihi", tarih.min())
+    bitis = st.date_input("Bitiş Tarihi", tarih.max())
+    if baslangic > bitis:
+        st.error("Başlangıç tarihi, bitiş tarihinden büyük olamaz.")
+    else:
+        filtreli_df = df[(df["Tarih"] >= pd.to_datetime(baslangic)) & (df["Tarih"] <= pd.to_datetime(bitis))]
+        st.dataframe(filtreli_df)
+
+    st.subheader("📌 Günlük Ortalama Hesabı")
+    ortalama = filtreli_df["Kar/Zarar"].mean()
+    st.markdown(f"*Seçilen Aralıkta Ortalama Kar/Zarar:* {ortalama:.2f} ₺")
+
+    st.subheader("📤 Veri İndirme Simülasyonu")
+    if st.button("Veriyi İndir (Simülasyon)"):
+        st.success("Veri indirildi (gerçek değil, simülasyon).")
+
+    st.subheader("📝 Kullanıcı Notları")
+    notlar = st.text_area("Bu modüle dair notlarınızı yazın:")
+    if notlar:
+        st.success("Not kaydedildi (simülasyon).")
+
+    st.subheader("📌 Günlük Kar/Zarar Histogramı")
+    st.bar_chart(df.set_index("Tarih")["Kar/Zarar"])
+
+    st.subheader("📈 Hareketli Ortalama")
+    df["MA5"] = df["Kar/Zarar"].rolling(window=5).mean()
+    st.line_chart(df.set_index("Tarih")[["Kar/Zarar", "MA5"]])
+
+    st.subheader("📊 Zaman Serisi Korelasyonu")
+    df["Kar/Zarar_Lag1"] = df["Kar/Zarar"].shift(1)
+    korelasyon = df[["Kar/Zarar", "Kar/Zarar_Lag1"]].corr().iloc[0, 1]
+    st.markdown(f"*Lag-1 Korelasyon:* {korelasyon:.2f}")
+
+    st.markdown("---")
+    st.markdown("✅ Modül başarıyla çalıştı ve test edildi.")
     st.stop()
-
-# Giriş başarılıysa devam et
-try:
-    behlul_core = importlib.import_module("behlul_core")
-    behlul = behlul_core.Behlul()
-    behlul.modul_ekle("Basit_Strateji", behlul_core.basit_strateji)
-    behlul.modul_ekle("Rastgele_Strateji", behlul_core.rastgele_strateji)
-except Exception as e:
-    st.error(f"Çekirdek modül yüklenemedi: {e}")
-    st.stop()
-
-# Mod seçimi
-mod = st.radio("Mod Seçimi:", ["📉 Basit Analiz", "📈 Gelişmiş Panel"])
-
-# 📉 Basit Analiz
-if mod == "📉 Basit Analiz":
-    st.title("📉 Basit Analiz")
-    st.markdown("Modül tetikleme ve test için sade analiz.")
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🔄 Modülü Tetikle"):
-            try:
-                sonuc = behlul_core.modul_tetikle()
-                st.success(f"Modül çalıştı: {sonuc}")
-            except Exception as e:
-                st.error(f"Hata oluştu: {e}")
-    with col2:
-        if st.button("🧪 Laboratuvar Testi Başlat"):
-            try:
-                test_sonucu = behlul_core.laboratuvar_test()
-                st.info(f"Test sonucu: {test_sonucu}")
-            except Exception as e:
-                st.error(f"Test hatası: {e}")
-
-    with st.expander("⚙ Gelişmiş Ayarlar"):
-        st.markdown("Buraya ilerde modül kombinasyonu, öneri motoru ve strateji ayarları eklenecek.")
-
-# 📈 Gelişmiş Panel
-elif mod == "📈 Gelişmiş Panel":
-    st.title("📈 Gelişmiş Panel")
-    st.markdown("Gelişmiş analiz ve test için detaylı panel.")
-
-    veri = st.number_input("Veri girin", value=12)
-    veri_seti = st.text_input("Veri seti (virgülle):", value="10,15,20")
-    try:
-        veri_listesi = [int(x.strip()) for x in veri_seti.split(",") if x.strip().isdigit()]
-    except:
-        st.error("Veri seti hatalı formatta.")
-        veri_listesi = []
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("🧪 Laboratuvar Testi"):
-            try:
-                sonuc = behlul.laboratuvar_testi(veri, veri_listesi)
-                st.write("Test Sonuçları:")
-                st.json(sonuc)
-            except Exception as e:
-                st.error(f"Test hatası: {e}")
-
-    with col2:
-        if st.button("📊 Öneri Motoru"):
-            try:
-                motor = behlul_core.OneriMotoru(behlul.moduller)
-                st.write("📌 Öneri:", motor.rastgele_oner())
-                analiz = motor.analiz_et(veri, veri_listesi)
-                st.write("📈 Analizler:")
-                st.json(analiz)
-            except Exception as e:
-                st.error(f"Motor hatası: {e}")
-
-    with col3:
-        if st.button("📁 Test Geçmişi"):
-            try:
-                st.code(behlul.test_ozeti(), language="json")
-            except Exception as e:
-                st.error(f"Özet alınamadı: {e}")
