@@ -6,9 +6,12 @@ import time
 st.set_page_config(page_title="Behlül AI", layout="centered", page_icon="🤖", initial_sidebar_state="collapsed")
 st.markdown("<style>footer{visibility:hidden;}</style>", unsafe_allow_html=True)
 
-# PIN doğrulama fonksiyonu
-def pin_dogrula(pin_input):
-    return pin_input == "1995"
+# PIN doğrulama fonksiyonu (yeni versiyon)
+def PIN_dogrulama(pin):
+    try:
+        return pin == "1995"
+    except:
+        return False
 
 # Oturum durumu
 if "dogrulandi" not in st.session_state:
@@ -18,17 +21,17 @@ if "dogrulandi" not in st.session_state:
 if not st.session_state.dogrulandi:
     st.title("🔐 Behlül AI Giriş")
     pin = st.text_input("PIN kodunu girin", type="password")
-    if st.button("Giriş Yap"):
-        if pin_dogrula(pin):
-            st.session_state.dogrulandi = True
-            st.success("Giriş başarılı ✅")
-            time.sleep(1)
-        else:
-            st.error("PIN hatalı ❌")
+    giris = st.button("Giriş Yap")
+
+    if giris and PIN_dogrulama(pin):
+        st.session_state.dogrulandi = True
+        st.success("Giriş başarılı ✅")
+        time.sleep(1)
+    elif giris:
+        st.error("PIN hatalı ❌")
     st.stop()
 
 # Giriş başarılıysa devam et
-# Behlül çekirdeğini yükle
 try:
     behlul_core = importlib.import_module("behlul_core")
     behlul = behlul_core.Behlul()
