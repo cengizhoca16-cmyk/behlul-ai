@@ -43,12 +43,12 @@ except Exception as e:
     st.stop()
 
 # Mod seçimi
-mod = st.radio("Mod Seçimi:", ["🔓 Basit Arayüz", "🔐 Gelişmiş Panel"])
+mod = st.radio("Mod Seçimi:", ["📉 Basit Analiz", "📈 Gelişmiş Panel"])
 
-# 🔓 Basit Arayüz
-if mod == "🔓 Basit Arayüz":
-    st.title("🤖 Behlül AI Asistanı")
-    st.markdown("Modül tetikleme ve test için sade arayüz.")
+# 📉 Basit Analiz
+if mod == "📉 Basit Analiz":
+    st.title("📉 Basit Analiz")
+    st.markdown("Modül tetikleme ve test için sade analiz.")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -69,10 +69,10 @@ if mod == "🔓 Basit Arayüz":
     with st.expander("⚙ Gelişmiş Ayarlar"):
         st.markdown("Buraya ilerde modül kombinasyonu, öneri motoru ve strateji ayarları eklenecek.")
 
-# 🔐 Gelişmiş Panel
-else:
-    st.title("🤖 Behlül AI Komut Paneli")
-    st.markdown("Modül tetikleme, test ve öneri motoru için gelişmiş arayüz.")
+# 📈 Gelişmiş Panel
+elif mod == "📈 Gelişmiş Panel":
+    st.title("📈 Gelişmiş Panel")
+    st.markdown("Gelişmiş analiz ve test için detaylı panel.")
 
     veri = st.number_input("Veri girin", value=12)
     veri_seti = st.text_input("Veri seti (virgülle):", value="10,15,20")
